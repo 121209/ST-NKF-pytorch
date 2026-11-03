@@ -1,0 +1,23 @@
+Earthquake catalogs and region polygons in this directory are redistributed from
+the public ST-NKF release so this PyTorch port can be run:
+
+  Chengxiang Zhan, Stephen Wu, Jiancang Zhuang, Shichen Gao
+  A Spatio-Temporal Neural Kernel Function Model for Earthquake Clustering
+  https://github.com/zhancx-edu/NeuralKernelFunction
+  https://doi.org/10.5281/zenodo.21841102
+  https://doi.org/10.1029/2025JH001110
+
+Those files are derived from the EarthquakeNPP benchmark
+(Samuel Stockman, Daniel J. Lawson, Maximilian J. Werner;
+https://github.com/ss15859/EarthquakeNPP), which itself is built from
+public seismic catalogs (USGS ComCat / ANSS, SCEDC, QTM, WHITE).
+
+The `*_catalog_jitter.csv` files are the inputs of `run_models.py`.
+Jitter of duplicated locations (±0.5 km) and duplicated times (±0.05 s)
+was applied upstream with NumPy seed 42. See that repository's
+`Data processing.ipynb`.
+
+The upstream GitHub repository does not attach an SPDX license.
+Please cite Zhan et al. and EarthquakeNPP if you use these catalogs.
+This repository's MIT license covers the PyTorch code, not a relicensing
+of the catalogs.

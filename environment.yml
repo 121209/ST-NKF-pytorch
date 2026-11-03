@@ -1,0 +1,13 @@
+# CPU environment for the PyTorch port.
+# CUDA: do not use the cpuonly line. Install pytorch from the pytorch channel
+# with the CUDA variant that matches your driver (see README).
+name: stnkf-pytorch
+channels:
+  - pytorch
+  - conda-forge
+dependencies:
+  - python>=3.10
+  - numpy>=1.26
+  - pandas>=2.0
+  - pytorch>=2.1
+  - cpuonly

@@ -1,0 +1,6 @@
+# PyTorch port of ST-NKF. CUDA wheels are optional; the CPU wheel is enough
+# for the SanJac smoke test. To use a GPU, install the matching CUDA build from
+# https://pytorch.org instead of the default pip wheel.
+numpy>=1.26
+pandas>=2.0
+torch>=2.1
