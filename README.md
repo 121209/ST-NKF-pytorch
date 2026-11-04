@@ -132,6 +132,60 @@ python batch.py --datasets SanJac --seeds 1 --models etas nkf --gpu 0 --run
 
 `--models` 的默认值是 `etas`，和上游真正会跑的那一截相同。
 
+
+## 绘图
+
+六个绘图 Notebook 保留上游文件名，读取本仓库的训练输出，不依赖 TensorFlow：
+
+| Notebook | 输入 | 图形 |
+|----------|------|------|
+| `plot CDF.ipynb` | `results/*_neural_neural_neural_*.npy` | 时间 / 空间核 CDF（PNG、PDF） |
+| `plot pattern.ipynb` | 两种模型的 `results/*.npy` | 时间 / 空间 PDF、生产率 κ(m)（PNG） |
+| `plot comparison.ipynb` | `ll_seismic_model.log`，带 `seed=...` | 时间 / 空间 / 总 LL 均值与标准差（PNG、PDF） |
+| `plot regression.ipynb` | 两种模型的 `csv/*.csv` | 测试集逐事件 LL 回归与 R²（PNG） |
+| `plot spatial information gain.ipynb` | 两种模型的 `csv/*.csv` | 空间 LL 差值的事件序列图（PNG） |
+| `plot temporal information gain.ipynb` | 两种模型的 `csv/*.csv` | 时间 LL 差值的事件序列图，附年份轴（PNG） |
+
+安装可选绘图依赖，在仓库根目录启动：
+
+```bash
+python -m pip install -r requirements-plotting.txt
+jupyter lab
+```
+
+打开 Notebook，修改开头参数单元格中的 `DATASETS`（默认七个目录，可先设为 `["SanJac"]`），再 Run All。图保存在 `fig/`；`DPI`、`SHOW_FIGURES` 可调整。CDF / pattern 的 `SAMPLE_STEP` 控制绘图抽样，使用内存映射读取大数组，不影响训练评估。
+
+输入必须先由 `run_models.py` 生成。绘制 SanJac 全套图需要 ETAS 和 ST-NKF 两种模型；核曲线图不能使用 `--no-patterns`。已有批量入口可执行三个 seed：
+
+```bash
+python batch.py --datasets SanJac --seeds 1 2 3 --models etas nkf --gpu 0 --run
+```
+
+对比图读取实际日志，没有内置论文分数。按目录、模型、seed 去重并保留最后一条；两种模型的 seed 集合必须一致。可在 `SEEDS` 中指定运行集合。图中显示运行数 n；误差棒为样本标准差，n=1 时不估计标准差。短程 smoke 也能出图，但其分数不能用于论文结论。
+
+逐事件图会核对两份 CSV 的事件、坐标和数据切分；不匹配时停止。当前训练脚本的 CSV / NPY / 权重路径不含 seed，三次运行后只保留最后一次的详细文件，因此这些图对应最后保留的一次；日志对比图可汇总三个 seed。
+
+不打开界面时，执行单个 Notebook：
+
+```bash
+jupyter nbconvert --to notebook --execute --ExecutePreprocessor.timeout=-1 --output-dir executed "plot CDF.ipynb"
+```
+
+在各 Notebook 的 `DATASETS` 与已有输出一致后，PowerShell 可批量执行：
+
+```powershell
+Get-ChildItem -File "plot *.ipynb" | ForEach-Object {
+    jupyter nbconvert --to notebook --execute --ExecutePreprocessor.timeout=-1 --output-dir executed $_.FullName
+    if ($LASTEXITCODE -ne 0) { throw "Notebook 执行失败：$($_.Name)" }
+}
+```
+
+带运行输出的副本保存在 `executed/`。合成数据绘图检查（不启动训练）：
+
+```bash
+python -m unittest discover -s tests -p test_plot_notebooks.py
+```
+
 ## 实现要点
 
 `KernelPointProcess`（`models.py`）把每条目标事件前面固定长度的历史展开成张量。长度等于该目录的辅助事件数。损失是
@@ -170,10 +224,11 @@ python batch.py --datasets SanJac --seeds 1 --models etas nkf --gpu 0 --run
 
 ## 还没做的部分
 
-- 未移植 `main.ipynb` 和 `plot *.ipynb`（CDF、信息增益、回归图）。评估需要的逐事件 log-likelihood 已经写在 `csv/`。
+- 未移植交互式训练入口 `main.ipynb` 和原始目录的 jitter 预处理 Notebook；六个绘图 Notebook 已补齐，见上文。
 - `batch.py` 可以排队跑完全部目录，但默认是 dry-run。ComCat 与 `SCEDC_20` 会把很长的历史窗口展开成稠密数组（训练窗上单份 `float32` 距离矩阵大约数 GB，再乘上时间、震级和验证/测试切分）。SanJac、SCEDC_30 小得多。内存不够时不要直接 `--run` 全网格。
 - 没有在本仓库里重跑论文的 3 个 seed × 全部目录，因此没有新的成绩表。
 
 ## 许可
 
 仓库根目录的 MIT License 适用于这里的 PyTorch 代码。地震目录的来源和引用方式见 `Datasets/SOURCE.txt`。上游 GitHub 仓库没有 SPDX 许可证；使用目录和结果时请引用 Zhan 等人与 EarthquakeNPP。
+
