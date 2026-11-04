@@ -10,3 +10,8 @@ weights/
 results/
 csv/
 *.log
+
+# Generated plots and executed notebook copies
+fig/
+executed/
+
